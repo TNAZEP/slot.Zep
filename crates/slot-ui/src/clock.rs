@@ -210,6 +210,9 @@ impl ClockPicker {
             (ClockRow::Time, false) if slot_i18n::language() == slot_i18n::Language::Japanese => {
                 &[Part::Meridiem, Part::Hour, Part::Minute]
             }
+            (ClockRow::Date, _) if slot_i18n::language() == slot_i18n::Language::Spanish => {
+                &[Part::Day, Part::Month, Part::Year]
+            }
             (ClockRow::Date, _) => &[Part::Month, Part::Day, Part::Year],
             (ClockRow::Time, true) => &[Part::Hour, Part::Minute],
             (ClockRow::Time, false) => &[Part::Hour, Part::Minute, Part::Meridiem],
@@ -323,6 +326,13 @@ impl ClockPicker {
                 (Some(Part::Month), month_name(self.month).into()),
                 (Some(Part::Day), self.day.to_string()),
                 (None, "日".into()),
+            ],
+            ClockRow::Date if slot_i18n::language() == slot_i18n::Language::Spanish => vec![
+                (Some(Part::Day), self.day.to_string()),
+                (None, " ".into()),
+                (Some(Part::Month), month_name(self.month).into()),
+                (None, " ".into()),
+                (Some(Part::Year), self.year.to_string()),
             ],
             ClockRow::Date => vec![
                 (Some(Part::Month), month_name(self.month).into()),

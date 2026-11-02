@@ -9,19 +9,22 @@ pub enum Language {
     #[default]
     English,
     Japanese,
+    Spanish,
 }
 impl Language {
-    pub const ALL: [Self; 2] = [Self::English, Self::Japanese];
+    pub const ALL: [Self; 3] = [Self::English, Self::Japanese, Self::Spanish];
     pub fn code(self) -> &'static str {
         match self {
             Self::English => "en",
             Self::Japanese => "ja",
+            Self::Spanish => "es",
         }
     }
     pub fn name(self) -> &'static str {
         match self {
             Self::English => "English",
             Self::Japanese => "日本語",
+            Self::Spanish => "Español",
         }
     }
     pub fn parse(code: &str) -> Self {
@@ -50,6 +53,10 @@ fn japanese() -> &'static HashMap<&'static str, &'static str> {
     static CATALOG: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
     CATALOG.get_or_init(|| parse_catalog(include_str!("../locales/ja.tsv")))
 }
+fn spanish() -> &'static HashMap<&'static str, &'static str> {
+    static CATALOG: OnceLock<HashMap<&'static str, &'static str>> = OnceLock::new();
+    CATALOG.get_or_init(|| parse_catalog(include_str!("../locales/es.tsv")))
+}
 fn parse_catalog(text: &str) -> HashMap<&str, &str> {
     text.lines()
         .filter(|line| !line.starts_with('#'))
@@ -62,6 +69,7 @@ pub fn translate(language: Language, english: &str) -> &str {
     match language {
         Language::English => english,
         Language::Japanese => japanese().get(english).copied().unwrap_or(english),
+        Language::Spanish => spanish().get(english).copied().unwrap_or(english),
     }
 }
 pub fn tr(english: &str) -> &str {

@@ -1,7 +1,7 @@
 # Localization
 
 Open the shelf menu and choose **General → Language**.
-Changes apply immediately and are saved as `language=en` or `language=ja` in
+Changes apply immediately and are saved as `language=en`, `language=ja` or `language=es` in
 `Config/slot.state`. Existing installations and unknown language codes use English.
 
 Japanese ROM names render in either language, on cartridge labels, boards and
@@ -12,7 +12,7 @@ Japanese font also works offline on devices without system fonts.
 
 `crates/slot-i18n/locales/en.tsv` is the English reference catalog. Each UTF-8 line
 contains an English source string, one tab, and its translation. Lines starting
-with `#` are comments. `ja.tsv` contains the Japanese translations. Missing,
+with `#` are comments. `ja.tsv` contains the Japanese translations and `es.tsv` the Spanish ones. Missing,
 empty, or whitespace-only translations fall back to the original English string.
 The English source text is the key; changing it requires updating the catalogs.
 Technical identifiers and physical button legends retain their original names.

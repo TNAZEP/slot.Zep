@@ -22,10 +22,14 @@ fn placeholders(text: &str) -> BTreeSet<&str> {
 #[test]
 fn catalog_keys_and_placeholders_match_english() {
     let en = catalog(include_str!("../locales/en.tsv"));
-    let ja = catalog(include_str!("../locales/ja.tsv"));
-    for (key, translated) in ja {
-        assert!(en.contains_key(key), "unknown key: {key}");
-        assert_eq!(placeholders(key), placeholders(translated), "{key}");
+    for locale in [
+        catalog(include_str!("../locales/ja.tsv")),
+        catalog(include_str!("../locales/es.tsv")),
+    ] {
+        for (key, translated) in locale {
+            assert!(en.contains_key(key), "unknown key: {key}");
+            assert_eq!(placeholders(key), placeholders(translated), "{key}");
+        }
     }
 }
 #[test]
@@ -36,6 +40,7 @@ fn missing_translations_and_unknown_languages_fall_back_to_english() {
     );
     assert_eq!(translate(Language::English, "Language"), "Language");
     assert_eq!(translate(Language::Japanese, "Language"), "言語");
+    assert_eq!(translate(Language::Spanish, "Language"), "Idioma");
     assert_eq!(Language::parse("unknown"), Language::English);
     assert_eq!(Language::parse(""), Language::English);
     for lang in Language::ALL {
