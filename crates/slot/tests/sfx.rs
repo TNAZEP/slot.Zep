@@ -2,7 +2,7 @@ mod common;
 
 use common::tmp_root_with_carts;
 use slot::app::{INSERT_S, SEATED_AT};
-use slot::audio::{ring_capacity, Ring, Sfx, OUTPUT_HZ};
+use slot::audio::{ring_capacity, AudioSink, Ring, Sfx, StubSink, OUTPUT_HZ};
 use slot::session::Session;
 
 #[test]
@@ -152,7 +152,7 @@ fn the_rest_of_a_clip_is_mixed_into_the_game_it_lands_over() {
 #[test]
 fn a_clip_plays_with_no_core_running() {
     let d = tmp_root_with_carts(&["Emerald"]);
-    let mut s = Session::boot(d.path().to_path_buf());
+    let mut s = session(d.path().to_path_buf());
     assert!(!s.has_core());
     s.play_sfx(Sfx::Insert);
     assert!(s.audio_queued() > 0, "the clip went nowhere");
@@ -238,7 +238,7 @@ fn sfx_peak(setup: impl Fn(&mut Session)) -> u16 {
         },
     )
     .unwrap();
-    let mut s = Session::boot(d.path().to_path_buf());
+    let mut s = session(d.path().to_path_buf());
     setup(&mut s);
     s.play_sfx(Sfx::Insert);
     let ring = s.audio_ring();
@@ -266,4 +266,10 @@ fn a_cart_sound_is_played_at_the_volume_that_is_set() {
 fn a_cart_sound_is_silent_when_muted() {
     let muted = sfx_peak(|s| s.app_mut().apply(slot_input::Action::MuteToggle));
     assert_eq!(muted, 0, "the cart was heard through a mute");
+}
+
+fn session(root: std::path::PathBuf) -> Session {
+    let mut sink = StubSink::new();
+    sink.open(OUTPUT_HZ).unwrap();
+    Session::boot_with(root, Box::new(sink))
 }

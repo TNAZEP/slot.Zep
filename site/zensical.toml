@@ -1,9 +1,9 @@
 [project]
-site_url = "https://slot-cfw.fyi/"
+site_url = "https://tnazep.github.io/slot.Zep/"
 site_name = "slot."
 site_description = "A bespoke, Game Boy-centric frontend for the Anbernic RG SP."
-repo_url = "https://github.com/BrandonKowalski/slot"
-repo_name = "BrandonKowalski/slot"
+repo_url = "https://github.com/TNAZEP/slot.Zep"
+repo_name = "TNAZEP/slot.Zep"
 docs_dir = "docs"
 site_dir = "public"
 
@@ -16,6 +16,7 @@ nav = [
     { "Playing" = [
       "guide/shelf.md",
       "guide/playing.md",
+      "guide/game-guides.md",
       "guide/screenshots.md",
       "guide/save-states.md",
       "guide/fast-forward-rewind-turbo.md",
@@ -26,6 +27,7 @@ nav = [
       "guide/screen.md",
       "guide/controls.md",
       "guide/customizing.md",
+      "guide/gamebit.md",
     ] },
     { "Reference and Help" = [
       "guide/settings.md",

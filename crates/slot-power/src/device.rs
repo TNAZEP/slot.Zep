@@ -666,14 +666,11 @@ impl Platform for DevicePlatform {
     }
 
     fn set_clock(&mut self, secs: i64) {
-        ran(
-            "date",
-            Command::new("date").arg(format!("-s@{secs}")).status(),
-        );
-        ran(
-            "hwclock",
-            Command::new("hwclock").args(["-w", "-u"]).status(),
-        );
+        write_clock(secs);
+    }
+
+    fn set_clock_in_background(&mut self, secs: i64) {
+        std::thread::spawn(move || write_clock(secs));
     }
 
     fn relink_adb(&mut self) -> bool {
@@ -823,4 +820,15 @@ mod tests {
         assert_eq!(device_target(None, "BASEOS_TARGET='rgsp'\n"), Some("rgsp"));
         assert_eq!(device_target(None, "BASEOS_DEVICE=h700\n"), None);
     }
+}
+
+fn write_clock(secs: i64) {
+    ran(
+        "date",
+        Command::new("date").arg(format!("-s@{secs}")).status(),
+    );
+    ran(
+        "hwclock",
+        Command::new("hwclock").args(["-w", "-u"]).status(),
+    );
 }
