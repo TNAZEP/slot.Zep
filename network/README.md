@@ -1,39 +1,39 @@
-# Home Wi-Fi on Slot
+# Networking
 
-Copy `Config/wifi.toml.example` to `Config/wifi.toml` on the SD card and enter your network names and passwords. Add one `[[networks]]` block per network, in preferred order. WPA2 personal networks are supported; for an open network use `security = "open"` and omit `password`. Enterprise setup and captive portals are not supported.
+Slot now uses the native upstream Wi-Fi worker and **Wireless → Network** menu.
+Scan for a network, enter its password, and choose whether it should auto-join.
+**General → Home Wi-Fi** and **Wireless → Wi-Fi** control the same saved switch.
+The footer shows connection status and signal strength. Turning Wi-Fi off keeps
+saved profiles but disconnects network services.
 
-Under Settings > General, change **Home Wi-Fi** to **On**. It defaults to Off and remembers your choice. Slot tries the configured networks in order and keeps a working connection. Association/DHCP run in the background; the shelf never waits for them. A small Wi-Fi symbol beside the battery appears only after the home connection has an IPv4 address. It indicates LAN connectivity, not internet reachability or signal strength.
+## Upgrading from the earlier fork
 
-**Off** disconnects the home network and stops scans/retries without deleting credentials. This ends SSH/SFTP connections using that network. Multiplayer works with Home Wi-Fi On or Off (see below). With neither connection needed, Slot blocks Wi-Fi through rfkill while retaining the initialized driver.
+If `Config/wifi.conf` does not exist, Slot imports the ordered profiles in
+`Config/wifi.toml` on startup. Open and WPA-PSK profiles remain supported; passwords
+are converted to derived PSKs without logging them. Invalid legacy files are
+left untouched and are not imported. Existing native configuration always wins.
+After migration, manage networks through the device menu. Editing the old TOML
+file no longer changes the active configuration.
 
-Edit the file while Slot is stopped, or toggle Off/On to reload it. Changes are also picked up before reconnect cycles. Invalid replacements leave a running valid configuration intact. Removing the file or clearing its network list and reloading stops home association. Credentials are readable on the SD card; they are never printed in Slot's diagnostics.
-
-Slot uses BaseOS's existing SSH/SFTP service and authentication. It does not enable a disabled SSH server or change passwords. Time synchronization is always enabled through BaseOS's NTP supervisor. It waits for connectivity and does not turn Home Wi-Fi on. The configured city/timezone and daylight-saving setting remain in effect. No timezone conversion is added to the system/RTC clock.
-
-## Diagnostics and compatibility
-
-With `SLOT_ROOT` set to the card mount, run:
-
-```sh
-/lib/ld-linux-aarch64.so.1 "$SLOT_ROOT/System/slot-services" service status
-/lib/ld-linux-aarch64.so.1 "$SLOT_ROOT/System/slot-services" home reload
-```
-
-`service stop` tears down Slot-owned network resources before handing the interfaces to another frontend. Slot's running frontend reconnects its service automatically; stop the frontend before handing control to another frontend. Logs are under `/run/slot-services/service.log`.
+The launcher stops the old `slot-services` daemon before starting the frontend.
+The native worker and `System/slotlink.sh` own the radio. Legacy service commands
+should not be used while the native frontend is running. Credentials remain on
+the SD card; keep the card private. Network time is controlled by the clock menu.
 
 ## Multiplayer
 
-A link uses whichever network the device is already on:
+Connect both handhelds to the same LAN, choose the same game, and use Host/Join.
+The link screen indicates **HOME WI-FI** or **DIRECT LINK**. LAN discovery uses
+mDNS (UDP 5353); the game connection uses TCP 7211 (or `SLOT_LINK_PORT`). Guest
+networks, client isolation, or blocked multicast can prevent discovery.
 
-- **Home Wi-Fi connected (a "HOME WI-FI" plate on the link screen).** Both handhelds meet over the home network. Nothing is brought up: no access point, no channel to share, so it works on any channel including DFS ones, and Home Wi-Fi stays connected throughout. The host announces itself as `<name>._slotlink._tcp.local` (mDNS, UDP 5353) with the cart's header code, and the joiner asks for hosts running the same game and connects to whoever answers on TCP :7211 (or `SLOT_LINK_PORT`). A host only accepts a peer that opens with its game's greeting. BaseOS's own Avahi is not needed and does not conflict: it only publishes `<hostname>.local`, and Slot's announcements work even with `mdns=false`.
-- **No home connection (a "DIRECT LINK" plate).** As before: the host brings up a private access point on wlan1 (`slotlink`, 10.42.0.1) and the joiner joins it (10.42.0.2), TCP :7211. If Home Wi-Fi is On but has not connected (out of range, still scanning), Slot pauses it for the session and resumes it afterwards.
+An existing home connection is retained across gameplay and link menus. If no
+home connection is established when linking starts, Slot uses upstream's direct
+link setup. Both handhelds must use the same mode; turn Wi-Fi off on both to
+force a direct link. Sleep and shutdown release the radio.
 
-Both players need to be in the same mode: one handheld on the home network and the other with Wi-Fi off cannot see each other, and the plates show which each is using. The home network must let devices talk to each other: an access point with client isolation, or a guest network, blocks the LAN mode and the joiner ends on "Nobody arrived". Turn Home Wi-Fi Off on both to use the direct link instead.
+## Gamebit and updates
 
-`slot-services link lan` asks the service whether the home network is up and prints its address (`0 192.168.1.24`), or exits 1 with `NO_HOME_LAN`; it takes no lease. `slot-services link host|join` refuse with `HOME_CONNECTED` while Home Wi-Fi is connected, since an access point beside a live home connection would fight it for the one channel.
-
-`iw` and its libnl libraries ship in `System/slot-net`, invoked through the system loader even on cards without executable bits. wpa_supplicant, wpa_cli, ip, rfkill and udhcpc must be present. The 8821cs driver prints no `channel` line in `iw dev <if> info`, so the channel is taken from `wpa_cli status`.
-
-The automated suite uses fake networking tools to validate ownership and lifecycle. Router channel changes, latency during SFTP, power use, mDNS behaviour under Wi-Fi power save, and game RTC behavior during clock correction still require two-device qualification.
-
-Release packaging includes `slot-services`, `slot-net` (iw and its libraries, with their licenses and Debian sources in `System/licenses`), and `Config/wifi.toml.example`. Copy release files over an existing card without deleting `wifi.toml` or `slot.state`. The deployment task never overwrites those user files.
+Upstream's Gamebit web interface and Cart Studio are available from the native
+menus. Slot updates use this fork's release repository and Pages manifest;
+BaseOS updates retain their upstream source. See [import details](../FORK_FEATURES.md).

@@ -21,21 +21,21 @@ software tests cannot measure input lag or prove panel operation.
 
 ## Battery life and heat
 
-The existing launcher already selects the `schedutil` CPU governor, allowing CPU
-frequency to follow load. This is the same change requested from the source fork.
-Actual power consumption depends on the device, game, core, and enabled features.
+Upstream reverted `schedutil` after observing stutter on handheld hardware. This
+fork follows that correction and uses the upstream performance governor. Lower
+heat and longer battery life are therefore not guaranteed; reliable frame pacing
+takes priority. Power consumption depends on the game, core, and enabled features.
 
 ## Home Wi-Fi
 
-Copy `Config/wifi.toml.example` to `Config/wifi.toml`, fill in the network details,
-and enable **Home Wi-Fi** under **General**. The setting defaults to Off and is
-saved across restarts. A Wi-Fi mark appears beside the battery when connected.
-See [network configuration and lifecycle](network/README.md) for multiple
-networks, supported security, time synchronization, and troubleshooting.
+Use **Wireless → Network** to scan, join, and manage saved networks. The existing
+**General → Home Wi-Fi** switch controls the same native Wi-Fi worker. Existing
+`Config/wifi.toml` profiles are imported into `Config/wifi.conf` once, only when
+the native file does not exist. The original file remains untouched; subsequent
+changes should use the Network menu. See [network configuration](network/README.md).
 
-Device bundles include `slot-services` and the required `iw` tools and libraries.
-The build and deployment tasks copy only the example configuration, preserving
-saved credentials. Building only the frontend binary is insufficient for Wi-Fi.
+The previous `slot-services` daemon is stopped during frontend startup so only
+one component controls the radio. Bundles retain it for upgrade compatibility.
 
 ## Cart labels
 
@@ -73,3 +73,21 @@ are the General menu/state, frontend label worker, link transport, panel power
 backend, and device frame pacer. Future ports should preserve this fork's clock,
 localization, rendering, and state-migration behavior. Achievements, cheats,
 colour calibration, and power-button changes were not included in this port.
+
+## Upstream integration (1.13)
+
+Merged all 68 commits from `BrandonKowalski/slot` through `0b95d32`, retaining
+the fork's Japanese localization, automatic 120 Hz, native-frame pacing,
+automatic/offline cart labels, and LAN linking. New upstream features include
+Shimmerless rendering, saturation/contrast, Boktai sunlight, reset/undo, guides,
+fast-forward options, native network setup, Cart Studio, Gamebit, network time,
+and Slot/BaseOS updates. The mGBA LCD fix is included as a core build patch.
+
+Slot OTA manifests use `https://tnazep.github.io/slot.Zep/versions.json` and
+download only from `TNAZEP/slot.Zep` releases. Publish this fork's release and
+Pages manifest before expecting OTA checks to succeed. BaseOS updates continue
+to use `pvaibhav/BaseOS`. No stock Slot update fallback is used.
+
+Linux checks exclude macOS-only headless rendering and desktop-input targets.
+Panel switching,
+power consumption, audio, and two-device Wi-Fi linking still need hardware checks.
